@@ -1,16 +1,10 @@
+import pickle
 from hmmlearn import hmm
 import random
 import pandas as pd
 import numpy as np
-# model=hmm.GMMHMM(n_components=5)
-# model.n_features=2
-# model.fit([[random.random(),(i%5)+random.random()] for i in range(200)],lengths=[10 for i in range(20)])
-#
-#
-#
-# print(sum([model.score([[random.random(),random.random()],[random.random(),random.random()],[random.random(),random.random()],[random.random(),random.random()],[random.random(),random.random()]]) for i in range(10)]))
-# print(sum([model.score([[random.random(),random.random()],[random.random(),1+random.random()],[random.random(),2+random.random()],[random.random(),3+random.random()],[random.random(),4+random.random()]]) for i in range(10)]))
-# print(sum([model.score([[random.random(),random.random()],[random.random(),1+random.random()],[random.random(),2+random.random()],[random.random(),3+random.random()],[random.random(),1+random.random()]]) for i in range(10)]))
+with open("chunwo.pkl", "rb") as file:
+    model=pickle.load(file)
 
 Logic_ID=[]
 #leftsteps=[5,4,3,2,1,0]
@@ -24,9 +18,6 @@ data['true_time']=(pd.to_datetime(data.loc[:,'approved_at_po'])-pd.to_datetime(d
 data['left_steps']=5/5
 data['father_index']=0
 data['true_avaiabletime']=data.loc[:,'avaiabletime']
-
-
-
 
 father_index=None
 for i in data.index:
@@ -51,21 +42,12 @@ for i in data.index:
 
 # for i in data.index:
 #     print(data.loc[i,'item'],data.loc[i,'left_steps'],data.loc[i,'true_time'],data.loc[i,'true_avaiabletime'])
-
-
 traindata = data[:100].copy()
 testdata = data[103:].copy()
-
-
-
 traintuple=[[a, b,c,d] for a, b,c,d in zip(list(traindata['item']), list(traindata['left_steps']), list(traindata['true_time']), list(traindata['true_avaiabletime']))]
 testss=[[a, b,c,d] for a, b,c,d in zip(list(testdata['item']), list(testdata['left_steps']), list(testdata['true_time']), list(testdata['true_avaiabletime']))]
-print(traintuple)
-model=hmm.GMMHMM(n_components=5,n_mix=3,covariance_type="tied")
-model.fit(traintuple,lengths=[10 for i in range(10)])
-print('-----------------')
-print(model.transmat_)
-print(model.score(testss))
-print(testss)
-testss[1][2]=1
-print(model.score(testss))
+
+indexlist=list(testdata.index)
+starttime=pd.to_datetime(testdata.loc[indexlist[0],'approved_at_po'])
+#starttime+=np.timedelta64(1,'D')
+
