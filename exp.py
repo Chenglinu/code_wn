@@ -66,6 +66,9 @@ indexlist = list(testdata.index)
 
 
 biaoqian = [[False, 0,0,True] if (testss[i][2]-testss[i][3])>-1.5 or testss[i][3]==0.01 else [False, 0,0,False] for i in range(len(indexlist))]
+# for i in range(len(biaoqian)):
+#     print(biaoqian[i])
+#     print(testss[i])
 
 testsque = []
 listtt = [pd.to_datetime(testdata.loc[indexlist[i], 'approved_at_po']) for i in range(len(indexlist))]
@@ -102,6 +105,7 @@ for i in range(len(testseq)):
 
     print("\r", end="")
     print("预测进度: {}%: ".format(round((i/(len(testseq)-1))*100,2)), "▋" * (i // 2), end="")
+
     sys.stdout.flush()
 
 
@@ -125,6 +129,7 @@ for i in range(len(testseq)):
 
         testprevious = [x[:4] for x in previous]
         testprevious.append(deepcopy(testseq[i][:4]))
+
         if testseq[i][0] == 1:
             nowavaliable_time = (pd.to_datetime(
                 testdata.loc[indexlist[i], 'required_delivery_date']) - starttime) / np.timedelta64(1, 'D')
@@ -140,6 +145,7 @@ for i in range(len(testseq)):
         if testseq[i][0] == 2:
 
             tt = []
+
             for k in range(0, int(testprevious[-1][3]) + 2):
                 if k == 0:
                     testprevious[-1][2] = 0.01
@@ -166,7 +172,21 @@ for i in range(len(testseq)):
             break
         else:
             tt = []
-            for k in range(0, int(testprevious[-1][3]) + 2):
+
+            r = (starttime-pd.to_datetime(testdata.loc[testdata.loc[indexlist[i], 'father_index'], 'approved_at_po']))/np.timedelta64(1,'D')
+            if r<0:
+                r=0
+            else:
+                r=int(r)
+            if r>=int(testprevious[-1][3]):
+                biaoqian[i]=[True, (pd.to_datetime(
+                    testdata.loc[indexlist[i], 'required_delivery_date']) - starttime) / np.timedelta64(1, 'D'), (
+                                           starttime - pd.to_datetime(
+                                       testdata.loc[indexlist[i], 'created_at_pr'])) / np.timedelta64(1, 'D'),biaoqian[i][3]]
+                break
+
+
+            for k in range(r, int(testprevious[-1][3]) + 2):
                 if k == 0:
                     testprevious[-1][2] = 0.01
                 else:
@@ -177,9 +197,13 @@ for i in range(len(testseq)):
                     continue
 
             tt.sort(key=lambda x: x[2], reverse=True)
-            # print(tt)
+            #print(tt)
             # print(testseq[i])
 
+            print('here', tt)
+            print(testseq[i])
+            if not tt:
+                break
             if tt[0][1] == 0.01:
                 biaoqian[i] = [True, (pd.to_datetime(
                     testdata.loc[indexlist[i], 'required_delivery_date']) - starttime) / np.timedelta64(1, 'D'), (
@@ -193,8 +217,7 @@ for i in range(len(testseq)):
                                    testdata.loc[indexlist[i], 'created_at_pr'])) / np.timedelta64(1, 'D'),biaoqian[i][3]]
                 break
 
-            # print('here', tt)
-            # print(testseq[i])
+
 
         starttime += np.timedelta64(1, 'D')
 
@@ -203,7 +226,7 @@ content='id,预测是否延误,提前天数,第几天发出警报,实际是否�
 for i in range(len(biaoqian)):
     content+='\n'+str(testdata.loc[indexlist[i],'id_po'])+','+str(biaoqian[i][0])+','+str(round(biaoqian[i][1],1))+','+str(biaoqian[i][2])+','+str(biaoqian[i][3])
 
-f=open('resultnew.csv','w')
+f=open('resultup1.csv','w')
 f.write(content)
 f.close()
 print('文件保存结束')
