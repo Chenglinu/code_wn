@@ -1,4 +1,2 @@
-import numpy as np
-np.seterr(divide='ignore',invalid='ignore')
-
-print(np.array([0,0])/np.array([0,0]))
+a=[1,2,3,4]
+print(a[3-2:3+1])
